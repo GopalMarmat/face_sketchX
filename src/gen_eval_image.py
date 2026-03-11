@@ -180,7 +180,7 @@ def check_criminal_match(metrics):
 
     if psnr is not None and ssim is not None:
         print(f"PSNR:{psnr} and SSIM:{ssim}")
-        if psnr > 19 and ssim > 50:
+        if psnr > 13 and ssim > 50:
             return True, psnr
 
     return False, psnr
@@ -188,7 +188,7 @@ def check_criminal_match(metrics):
 
 
 def check_criminal_db(sketch,best_img):
-    folder_path = "Data/photos/"
+    folder_path = "test/photos/"
 
     data_found = False
     img_dict={}
