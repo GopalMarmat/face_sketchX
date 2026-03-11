@@ -1,0 +1,20 @@
+# Core
+numpy>=1.23.0
+tqdm>=4.65.0
+regex>=2023.6.0
+ipykernel>=6.25.0
+
+# Web UI
+streamlit>=1.25.0
+
+# Image processing
+opencv-python>=4.7.0
+Pillow>=9.5.0
+scikit-image>=0.20.0
+
+# Deep Learning
+tensorflow>=2.12.0
+keras>=2.12.0
+
+# Computer Vision
+mediapipe>=0.10.0
