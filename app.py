@@ -97,109 +97,75 @@ if sketch_file:
         st.markdown("**Sketch Input**")
         st.image(sketch, use_container_width=True)
 
-    with c2:
-        st.markdown("**Reference Landmarks**")
-        st.image(draw_face_structure(sketch), use_container_width=True)
 
     # -------- GENERATION --------
     st.markdown("---")
-    st.subheader("🎨 Candidate Generation")
+    st.subheader("🎨 Sketch Processing")
 
-    with st.spinner("Generating faces..."):
+    with st.spinner("Processing Data."):
         images = generate_images(st.session_state.generator, sketch)
 
-    cols = st.columns(3)
-    for i, img in enumerate(images):
-        cols[i].image(img, caption=f"Candidate {i+1}", use_container_width=True)
-
-    # -------- BEST IMAGE --------
-    st.markdown("---")
-    st.subheader("🏆 Best Image Selection")
-
     best_img = select_best_image(extract_landmarks(sketch), images)
-
-    cA, cB = st.columns(2)
-    with cA:
-        st.markdown("**Final Output**")
-        st.image(best_img, use_container_width=True)
-
-    with cB:
-        st.markdown("**Facial Landmarks**")
-        st.image(draw_face_structure(best_img), use_container_width=True)
+    st.image(best_img)
 
 
-    st.markdown("---")
-    st.subheader("📊 Criminal Image Result")
+    
 
     # -------- CRIMINAL MATCH CHECK --------
 
     if gt_file:
         data_found, criminal_image, metrics=check_criminal_db(sketch=sketch, best_img=best_img)
+        st.markdown("---")
+        st.subheader("📊 Criminal Image")
+
+        # Display metrics
+        st.subheader("📊 Evaluation Metrics")
+
+
+        mcols = st.columns(len(metrics))
+        for col, (k, v) in zip(mcols, metrics.items()):
+            col.metric(k, v)
+
+        # -------- RADAR CHART --------
+        st.markdown("### 📈 Metric Radar Visualization")
+        radar_metrics = {
+            k.replace("(%)", "").replace("(dB)", ""): min(v, 100)
+            for k, v in metrics.items()
+            if "%" in k
+        }
+
+        st.pyplot(plot_radar(radar_metrics))
 
 
         if data_found:
+            img = Image.open(criminal_image)
+            img_bytes = img.tobytes()
+            img_path=str(criminal_image)
+            img_id=img_path.split("/")[-1]
             st.success(
                 "🚨 **CRIMINAL IMAGE MATCHED**\n\n"
-                "The generated face does match the provided criminal image.\n\n"
-                "**Reason:**\n"
-                "- PSNR > 14 dB\n"
-                "- SSIM > 50%\n\n"
+                "The uploaded sketch does match with the criminal image Data Base.\n\n"
+                f"Criminal Image Path: {img_id}"
             )
                 #st.stop()  # ⛔ Stop further processing (radar, downloads, etc.)
 
-
-            # Display metrics
-            st.subheader("📊 Sketch Match result with DB")
-
-
-            mcols = st.columns(len(metrics))
-            for col, (k, v) in zip(mcols, metrics.items()):
-                col.metric(k, v)
-
-            # -------- RADAR CHART --------
-            st.markdown("### 📈 Metric Radar Visualization")
-            radar_metrics = {
-                k.replace("(%)", "").replace("(dB)", ""): min(v, 100)
-                for k, v in metrics.items()
-                if "%" in k
-            }
-
-            st.pyplot(plot_radar(radar_metrics))
 
             # -------- DOWNLOADS --------
             st.markdown("---")
             st.subheader("⬇️ Downloads")
 
-            img = Image.open(criminal_image)
-            img_bytes = img.tobytes()
-            st.image(img)
-
-            st.download_button(
-                "Download Generated Image",
-                data=img_bytes,
-                file_name="facesketchx_output.jpg",
-                mime="image/jpg",
-            )
-
-            json_safe_metrics = make_json_safe(metrics)
-
-            st.download_button(
-                "Download Metrics (JSON)",
-                data=json.dumps(json_safe_metrics, indent=4),
-                file_name="facesketchx_metrics.json",
-                mime="application/json",
-            )
+            st.image(img, use_container_width=True)
 
 
             st.success("Process completed successfully")
         else:
-            st.success(
-                "**CRIMINAL IMAGE NOT MATCHED**\n\n"
-                "The generated face does not match the provided criminal image.\n\n"
+            st.error(
+                "**CRIMINAL IMAGE NOT MATCHED with DB**\n\n"
+                "The uploaded sketch does not match with criminal image Databse.\n\n"
                 "**Reason:**\n"
-                "- PSNR < 14 dB\n"
+                "- PSNR < 13 dB\n"
                 "- SSIM < 50%\n\n"
-                "⚠️ Please verify the sketch or provide a clearer reference image."
+                "⚠️ Please verify the sketch or provide a clearer sketch."
             )
 
 else:
